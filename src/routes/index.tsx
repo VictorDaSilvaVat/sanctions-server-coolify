@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Clock,
   Database,
+  Hash,
 } from 'lucide-react'
 
 type ListSummary = {
@@ -81,7 +82,7 @@ type CryptoResult = {
   timestamp: string
 }
 
-type SearchMode = 'entity' | 'crypto'
+type SearchMode = 'entity' | 'crypto' | 'id'
 
 function formatDate(iso: string | null): string {
   if (!iso) return 'Never'
@@ -297,6 +298,11 @@ export default function SanctionsDashboard() {
           `/api/sanctions/check?q=${encodeURIComponent(query)}&type=name`,
         )
         if (res.ok) setResult(await res.json())
+      } else if (mode === 'id') {
+        const res = await fetch(
+          `/api/sanctions/check?q=${encodeURIComponent(query)}&type=id`,
+        )
+        if (res.ok) setResult(await res.json())
       } else {
         const res = await fetch(
           `/api/sanctions/crypto?address=${encodeURIComponent(query)}`,
@@ -332,8 +338,9 @@ export default function SanctionsDashboard() {
       await fetchLists()
       setSyncMsg('Done.')
       setTimeout(() => setSyncMsg(''), 3000)
-    } catch {
-      setSyncMsg('Error triggering sync.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setSyncMsg(`Sync error: ${msg}`)
     } finally {
       setSyncing(false)
     }
@@ -437,6 +444,7 @@ export default function SanctionsDashboard() {
                 {[
                   { id: 'entity' as SearchMode, label: 'Entity / Name', icon: User },
                   { id: 'crypto' as SearchMode, label: 'Crypto Address', icon: Bitcoin },
+                  { id: 'id' as SearchMode, label: 'SDN ID', icon: Hash },
                 ].map(({ id, label, icon: Icon }) => (
                   <button
                     key={id}
@@ -469,7 +477,9 @@ export default function SanctionsDashboard() {
                     placeholder={
                       mode === 'entity'
                         ? 'Search name, alias, or organization…'
-                        : 'Enter blockchain address (BTC, ETH, TRX, …)'
+                        : mode === 'crypto'
+                          ? 'Enter blockchain address (BTC, ETH, TRX, …)'
+                          : 'Enter SDN ID number…'
                     }
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -759,7 +769,7 @@ export default function SanctionsDashboard() {
                 description: 'Search entities and crypto addresses across all active lists.',
                 params: [
                   { name: 'q', required: true, desc: 'Search query (min 2 chars)' },
-                  { name: 'type', required: false, desc: 'name | crypto | all (default: all)' },
+                  { name: 'type', required: false, desc: 'name | crypto | id | all (default: all)' },
                   { name: 'limit', required: false, desc: 'Max results per category (default: 50, max: 200)' },
                 ],
                 example: '/api/sanctions/check?q=Lazarus+Group&type=name',

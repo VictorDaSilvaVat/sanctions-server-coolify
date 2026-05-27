@@ -32,8 +32,8 @@ router.get("/", async (req, res) => {
             return res.status(400).json({ error: "Query must be at least 2 characters" });
         }
 
-        const searchCrypto = type === "all" || type === "crypto";
-        const searchEntities = type === "all" || type === "name";
+        const searchCrypto = type === "all" || type === "crypto" || type === "id";
+        const searchEntities = type === "all" || type === "name" || type === "id";
 
         const entityRows = searchEntities
             ? await db
@@ -51,10 +51,12 @@ router.get("/", async (req, res) => {
                   .from(sanctionsEntities)
                   .innerJoin(sanctionsLists, eq(sanctionsEntities.listId, sanctionsLists.id))
                   .where(
-                      or(
-                          ilike(sanctionsEntities.name, `%${query}%`),
-                          ilike(sanctionsEntities.aliases, `%${query}%`),
-                      ),
+                      type === "id"
+                          ? ilike(sanctionsEntities.sdnId, `%${query}%`)
+                          : or(
+                                ilike(sanctionsEntities.name, `%${query}%`),
+                                ilike(sanctionsEntities.aliases, `%${query}%`),
+                            ),
                   )
                   .limit(limit)
             : [];
@@ -76,10 +78,12 @@ router.get("/", async (req, res) => {
                       eq(sanctionsCryptoAddresses.listId, sanctionsLists.id),
                   )
                   .where(
-                      ilike(
-                          sanctionsCryptoAddresses.address,
-                          `%${query.replace(/^0x/i, "")}%`,
-                      ),
+                      type === "id"
+                          ? ilike(sanctionsCryptoAddresses.sdnId, `%${query}%`)
+                          : ilike(
+                                sanctionsCryptoAddresses.address,
+                                `%${query.replace(/^0x/i, "")}%`,
+                            ),
                   )
                   .limit(limit)
             : [];
