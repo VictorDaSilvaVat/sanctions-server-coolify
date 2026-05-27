@@ -6,6 +6,14 @@ services:
     restart: unless-stopped
     expose:
       - "3000"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/sanctions
       - PRIVATE_LISTS_DIR=/app/private-lists
