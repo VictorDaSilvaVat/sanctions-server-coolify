@@ -27,8 +27,8 @@ router.get("/", async (req, res) => {
         if (query.length < 2) {
             return res.status(400).json({ error: "Query must be at least 2 characters" });
         }
-        const searchCrypto = type === "all" || type === "crypto";
-        const searchEntities = type === "all" || type === "name";
+        const searchCrypto = type === "all" || type === "crypto" || type === "id";
+        const searchEntities = type === "all" || type === "name" || type === "id";
         const entityRows = searchEntities
             ? await db_1.db
                 .select({
@@ -44,7 +44,9 @@ router.get("/", async (req, res) => {
             })
                 .from(schema_1.sanctionsEntities)
                 .innerJoin(schema_1.sanctionsLists, (0, drizzle_orm_1.eq)(schema_1.sanctionsEntities.listId, schema_1.sanctionsLists.id))
-                .where((0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.name, `%${query}%`), (0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.aliases, `%${query}%`)))
+                .where(type === "id"
+                ? (0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.sdnId, `%${query}%`)
+                : (0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.name, `%${query}%`), (0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.aliases, `%${query}%`)))
                 .limit(limit)
             : [];
         const cryptoRows = searchCrypto
@@ -60,7 +62,9 @@ router.get("/", async (req, res) => {
             })
                 .from(schema_1.sanctionsCryptoAddresses)
                 .innerJoin(schema_1.sanctionsLists, (0, drizzle_orm_1.eq)(schema_1.sanctionsCryptoAddresses.listId, schema_1.sanctionsLists.id))
-                .where((0, drizzle_orm_1.ilike)(schema_1.sanctionsCryptoAddresses.address, `%${query.replace(/^0x/i, "")}%`))
+                .where(type === "id"
+                ? (0, drizzle_orm_1.ilike)(schema_1.sanctionsCryptoAddresses.sdnId, `%${query}%`)
+                : (0, drizzle_orm_1.ilike)(schema_1.sanctionsCryptoAddresses.address, `%${query.replace(/^0x/i, "")}%`))
                 .limit(limit)
             : [];
         const entityMatches = entityRows.map((row) => ({

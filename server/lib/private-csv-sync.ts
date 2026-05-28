@@ -56,7 +56,7 @@ export const PRIVATE_LISTS: PrivateListConfig[] = [
     {
         name: "Private Malware",
         fileName: "malware.csv",
-        description: "Private malware crypto intelligence list",
+        description: "Cable, Jack. (2024). Ransomwhere: A Crowdsourced Ransomware Payment Dataset (1.1.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.6512122",
         parser: parseRiskWalletList("Private Malware"),
     },
     {
