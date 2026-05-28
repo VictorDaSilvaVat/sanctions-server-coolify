@@ -141,6 +141,7 @@ async function ensureListRecords() {
     ];
     const map = {};
     for (const seed of seeds) {
+        const category = seed.source.startsWith("private://") ? "unofficial" : "official";
         const existing = await db_1.db
             .select({ id: schema_1.sanctionsLists.id })
             .from(schema_1.sanctionsLists)
@@ -152,6 +153,7 @@ async function ensureListRecords() {
                 .set({
                 source: seed.source,
                 description: seed.description,
+                category,
                 updatedAt: new Date(),
             })
                 .where((0, drizzle_orm_1.eq)(schema_1.sanctionsLists.id, existing[0].id));
@@ -160,7 +162,7 @@ async function ensureListRecords() {
         else {
             const [row] = await db_1.db
                 .insert(schema_1.sanctionsLists)
-                .values(seed)
+                .values({ ...seed, category })
                 .returning({ id: schema_1.sanctionsLists.id });
             map[seed.name] = row.id;
         }

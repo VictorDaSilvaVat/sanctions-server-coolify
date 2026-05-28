@@ -18,6 +18,7 @@ export const sanctionsLists = pgTable('sanctions_lists', {
   addressCount: integer('address_count').default(0),
   status: text('status').default('pending'), // pending | syncing | active | error
   errorMessage: text('error_message'),
+  category: text('category').default('official'), // official | unofficial
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 })

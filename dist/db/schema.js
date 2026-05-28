@@ -12,6 +12,7 @@ exports.sanctionsLists = (0, pg_core_1.pgTable)('sanctions_lists', {
     addressCount: (0, pg_core_1.integer)('address_count').default(0),
     status: (0, pg_core_1.text)('status').default('pending'), // pending | syncing | active | error
     errorMessage: (0, pg_core_1.text)('error_message'),
+    category: (0, pg_core_1.text)('category').default('official'), // official | unofficial
     createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)('updated_at').defaultNow(),
 });

@@ -14,6 +14,8 @@ import {
   Clock,
   Database,
   Hash,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react'
 
 type ListSummary = {
@@ -31,6 +33,7 @@ type ListSummary = {
     status: string
     errorMessage: string | null
     updatedAt: string | null
+    category: string
   }>
 }
 
@@ -93,6 +96,23 @@ function formatDate(iso: string | null): string {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function CategoryBadge({ category }: { category: string }) {
+  if (category === 'official') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+        <ShieldCheck className="w-3 h-3" />
+        Official
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+      <ShieldAlert className="w-3 h-3" />
+      Unofficial
+    </span>
+  )
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -607,6 +627,7 @@ export default function SanctionsDashboard() {
                             <p className="font-semibold text-gray-900">
                               {list.name}
                             </p>
+                            <CategoryBadge category={list.category} />
                             <StatusBadge status={list.status ?? 'pending'} />
                           </div>
                           <p className="text-xs text-gray-500 mt-0.5">
@@ -733,6 +754,7 @@ export default function SanctionsDashboard() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-semibold text-gray-900">{list.name}</p>
+                          <CategoryBadge category={list.category} />
                           <StatusBadge status={list.status ?? 'pending'} />
                         </div>
                         <p className="text-xs text-gray-500">{list.description}</p>

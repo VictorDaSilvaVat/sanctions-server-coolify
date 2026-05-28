@@ -64,9 +64,11 @@ async function initializeDatabaseSchema() {
             address_count INTEGER DEFAULT 0,
             status TEXT DEFAULT 'pending',
             error_message TEXT,
+            category TEXT DEFAULT 'official',
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
         );
+        ALTER TABLE sanctions_lists ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'official';
 
         CREATE TABLE IF NOT EXISTS sanctions_entities (
             id SERIAL PRIMARY KEY,
@@ -108,29 +110,33 @@ async function initializeDatabaseSchema() {
             ADD CONSTRAINT sanctions_crypto_addresses_entity_id_sanctions_entities_id_fkey
             FOREIGN KEY (entity_id) REFERENCES sanctions_entities(id) ON DELETE CASCADE;
 
-        INSERT INTO sanctions_lists (name, source, description, status)
+        UPDATE sanctions_lists SET category = 'unofficial' WHERE source LIKE 'private://%' AND category IS NULL;
+        UPDATE sanctions_lists SET category = 'official' WHERE source NOT LIKE 'private://%' AND category IS NULL;
+
+        INSERT INTO sanctions_lists (name, source, description, status, category)
         VALUES
-            ('OFAC SDN', 'https://www.treasury.gov/ofac/downloads/sdn.xml', 'US Treasury OFAC Specially Designated Nationals and Blocked Persons List', 'pending'),
-            ('OFAC Consolidated', 'https://www.treasury.gov/ofac/downloads/consolidated/consolidated.xml', 'US Treasury OFAC Consolidated Sanctions List', 'pending'),
-            ('UN Consolidated', 'https://scsanctions.un.org/resources/xml/en/consolidated.xml', 'United Nations Security Council Consolidated Sanctions List', 'pending'),
-            ('EU Consolidated', 'https://data.opensanctions.org/datasets/latest/eu_fsf/entities.ftm.json', 'European Union Financial Sanctions Files (CFSP)', 'pending'),
-            ('PEP OpenSanctions', 'https://data.opensanctions.org/datasets/latest/peps/entities.ftm.json', 'Politically exposed persons collection from OpenSanctions', 'pending'),
-            ('IL NBCTF', 'https://data.opensanctions.org/datasets/latest/il_nbctf/entities.ftm.json', 'Israel National Bureau for Counter Terror Financing sanctions and seizure data via OpenSanctions', 'pending'),
-            ('JP MOF', 'https://data.opensanctions.org/datasets/latest/jp_mof_sanctions/entities.ftm.json', 'Japan Ministry of Finance sanctions list via OpenSanctions', 'pending'),
-            ('GB OFSI', 'https://data.opensanctions.org/datasets/latest/gb_fcdo_sanctions/entities.ftm.json', 'United Kingdom financial sanctions list maintained by OFSI/FCDO via OpenSanctions', 'pending'),
-            ('CH SECO', 'https://data.opensanctions.org/datasets/latest/ch_seco_sanctions/entities.ftm.json', 'Swiss SECO sanctions list via OpenSanctions', 'pending'),
-            ('EU FSF', 'https://data.opensanctions.org/datasets/latest/eu_fsf/entities.ftm.json', 'European Union Financial Sanctions Files via OpenSanctions', 'pending'),
-            ('FR DG Tresor', 'https://data.opensanctions.org/datasets/latest/fr_tresor_gels_avoir/entities.ftm.json', 'French Directorate General of the Treasury asset freeze list via OpenSanctions', 'pending'),
-            ('AU DFAT', 'https://data.opensanctions.org/datasets/latest/au_dfat_sanctions/entities.ftm.json', 'Australian DFAT consolidated sanctions list via OpenSanctions', 'pending'),
-            ('CA GAC', 'https://data.opensanctions.org/datasets/latest/ca_dfatd_sema_sanctions/entities.ftm.json', 'Global Affairs Canada sanctions list via OpenSanctions', 'pending'),
-            ('Private Extremistas', 'private://extremistas.csv', 'Private extremist groups crypto intelligence list', 'pending'),
-            ('WSL', 'private://wsl.csv', 'Private WSL crypto intelligence list', 'pending'),
-            ('Private Scams', 'private://scams.csv', 'Private scams intelligence list', 'pending'),
-            ('Private Malware', 'private://malware.csv', 'Private malware crypto intelligence list', 'pending'),
-            ('Private Hackers', 'private://hackers.csv', 'Private hackers crypto intelligence list', 'pending')
+            ('OFAC SDN', 'https://www.treasury.gov/ofac/downloads/sdn.xml', 'US Treasury OFAC Specially Designated Nationals and Blocked Persons List', 'pending', 'official'),
+            ('OFAC Consolidated', 'https://www.treasury.gov/ofac/downloads/consolidated/consolidated.xml', 'US Treasury OFAC Consolidated Sanctions List', 'pending', 'official'),
+            ('UN Consolidated', 'https://scsanctions.un.org/resources/xml/en/consolidated.xml', 'United Nations Security Council Consolidated Sanctions List', 'pending', 'official'),
+            ('EU Consolidated', 'https://data.opensanctions.org/datasets/latest/eu_fsf/entities.ftm.json', 'European Union Financial Sanctions Files (CFSP)', 'pending', 'official'),
+            ('PEP OpenSanctions', 'https://data.opensanctions.org/datasets/latest/peps/entities.ftm.json', 'Politically exposed persons collection from OpenSanctions', 'pending', 'official'),
+            ('IL NBCTF', 'https://data.opensanctions.org/datasets/latest/il_nbctf/entities.ftm.json', 'Israel National Bureau for Counter Terror Financing sanctions and seizure data via OpenSanctions', 'pending', 'official'),
+            ('JP MOF', 'https://data.opensanctions.org/datasets/latest/jp_mof_sanctions/entities.ftm.json', 'Japan Ministry of Finance sanctions list via OpenSanctions', 'pending', 'official'),
+            ('GB OFSI', 'https://data.opensanctions.org/datasets/latest/gb_fcdo_sanctions/entities.ftm.json', 'United Kingdom financial sanctions list maintained by OFSI/FCDO via OpenSanctions', 'pending', 'official'),
+            ('CH SECO', 'https://data.opensanctions.org/datasets/latest/ch_seco_sanctions/entities.ftm.json', 'Swiss SECO sanctions list via OpenSanctions', 'pending', 'official'),
+            ('EU FSF', 'https://data.opensanctions.org/datasets/latest/eu_fsf/entities.ftm.json', 'European Union Financial Sanctions Files via OpenSanctions', 'pending', 'official'),
+            ('FR DG Tresor', 'https://data.opensanctions.org/datasets/latest/fr_tresor_gels_avoir/entities.ftm.json', 'French Directorate General of the Treasury asset freeze list via OpenSanctions', 'pending', 'official'),
+            ('AU DFAT', 'https://data.opensanctions.org/datasets/latest/au_dfat_sanctions/entities.ftm.json', 'Australian DFAT consolidated sanctions list via OpenSanctions', 'pending', 'official'),
+            ('CA GAC', 'https://data.opensanctions.org/datasets/latest/ca_dfatd_sema_sanctions/entities.ftm.json', 'Global Affairs Canada sanctions list via OpenSanctions', 'pending', 'official'),
+            ('Private Extremistas', 'private://extremistas.csv', 'Private extremist groups crypto intelligence list', 'pending', 'unofficial'),
+            ('WSL', 'private://wsl.csv', 'Private WSL crypto intelligence list', 'pending', 'unofficial'),
+            ('Private Scams', 'private://scams.csv', 'Private scams intelligence list', 'pending', 'unofficial'),
+            ('Private Malware', 'private://malware.csv', 'Private malware crypto intelligence list', 'pending', 'unofficial'),
+            ('Private Hackers', 'private://hackers.csv', 'Private hackers crypto intelligence list', 'pending', 'unofficial')
         ON CONFLICT (name) DO UPDATE SET
             source = EXCLUDED.source,
             description = EXCLUDED.description,
+            category = CASE WHEN EXCLUDED.source LIKE 'private://%' THEN 'unofficial' ELSE 'official' END,
             updated_at = NOW();
     `);
 }

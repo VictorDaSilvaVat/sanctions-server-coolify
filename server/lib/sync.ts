@@ -180,6 +180,7 @@ export async function ensureListRecords(): Promise<Record<string, number>> {
 
     const map: Record<string, number> = {};
     for (const seed of seeds) {
+        const category = seed.source.startsWith("private://") ? "unofficial" : "official";
         const existing = await db
             .select({ id: sanctionsLists.id })
             .from(sanctionsLists)
@@ -192,6 +193,7 @@ export async function ensureListRecords(): Promise<Record<string, number>> {
                 .set({
                     source: seed.source,
                     description: seed.description,
+                    category,
                     updatedAt: new Date(),
                 })
                 .where(eq(sanctionsLists.id, existing[0].id));
@@ -199,7 +201,7 @@ export async function ensureListRecords(): Promise<Record<string, number>> {
         } else {
             const [row] = await db
                 .insert(sanctionsLists)
-                .values(seed)
+                .values({ ...seed, category })
                 .returning({ id: sanctionsLists.id });
             map[seed.name] = row.id;
         }
