@@ -52,7 +52,10 @@ router.get("/", async (req, res) => {
                   .innerJoin(sanctionsLists, eq(sanctionsEntities.listId, sanctionsLists.id))
                   .where(
                       type === "id"
-                          ? ilike(sanctionsEntities.sdnId, `%${query}%`)
+                          ? or(
+                                ilike(sanctionsEntities.sdnId, `%${query}%`),
+                                ilike(sanctionsEntities.remarks, `%${query}%`),
+                            )
                           : or(
                                 ilike(sanctionsEntities.name, `%${query}%`),
                                 ilike(sanctionsEntities.aliases, `%${query}%`),

@@ -251,6 +251,20 @@ async function syncOFACList(listId: number, url: string, label: string): Promise
 
             if (!name) continue;
 
+            const idDocs: string[] = [];
+            for (const id of toArray<Record<string, unknown>>(entry.idList?.id)) {
+                const idType = String(id.idType ?? "").trim();
+                const idNumber = String(id.idNumber ?? "").trim();
+                if (idType && idNumber && !idType.startsWith("Digital Currency Address")) {
+                    idDocs.push(`${idType}: ${idNumber}`);
+                }
+            }
+            const remarksParts = [
+                entry.remarks ? String(entry.remarks) : null,
+                idDocs.length > 0 ? idDocs.join(" | ") : null,
+            ].filter(Boolean);
+            const remarks = remarksParts.length > 0 ? remarksParts.join(" | ") : null;
+
             entityRows.push({
                 listId,
                 sdnId: sdnId || null,
@@ -259,7 +273,7 @@ async function syncOFACList(listId: number, url: string, label: string): Promise
                 entityType,
                 programs: JSON.stringify(programs),
                 country,
-                remarks: entry.remarks ? String(entry.remarks) : null,
+                remarks,
             });
         }
 

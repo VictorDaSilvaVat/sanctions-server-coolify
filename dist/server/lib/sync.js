@@ -204,6 +204,19 @@ async function syncOFACList(listId, url, label) {
             const country = addresses[0]?.country ? String(addresses[0].country) : null;
             if (!name)
                 continue;
+            const idDocs = [];
+            for (const id of toArray(entry.idList?.id)) {
+                const idType = String(id.idType ?? "").trim();
+                const idNumber = String(id.idNumber ?? "").trim();
+                if (idType && idNumber && !idType.startsWith("Digital Currency Address")) {
+                    idDocs.push(`${idType}: ${idNumber}`);
+                }
+            }
+            const remarksParts = [
+                entry.remarks ? String(entry.remarks) : null,
+                idDocs.length > 0 ? idDocs.join(" | ") : null,
+            ].filter(Boolean);
+            const remarks = remarksParts.length > 0 ? remarksParts.join(" | ") : null;
             entityRows.push({
                 listId,
                 sdnId: sdnId || null,
@@ -212,7 +225,7 @@ async function syncOFACList(listId, url, label) {
                 entityType,
                 programs: JSON.stringify(programs),
                 country,
-                remarks: entry.remarks ? String(entry.remarks) : null,
+                remarks,
             });
         }
         if (entityRows.length === 0)

@@ -45,7 +45,7 @@ router.get("/", async (req, res) => {
                 .from(schema_1.sanctionsEntities)
                 .innerJoin(schema_1.sanctionsLists, (0, drizzle_orm_1.eq)(schema_1.sanctionsEntities.listId, schema_1.sanctionsLists.id))
                 .where(type === "id"
-                ? (0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.sdnId, `%${query}%`)
+                ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.sdnId, `%${query}%`), (0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.remarks, `%${query}%`))
                 : (0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.name, `%${query}%`), (0, drizzle_orm_1.ilike)(schema_1.sanctionsEntities.aliases, `%${query}%`)))
                 .limit(limit)
             : [];
