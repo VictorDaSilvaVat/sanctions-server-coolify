@@ -494,6 +494,24 @@ async function syncOpenSanctionsDataset(listId, dataset) {
             "wallet",
             "publicKey",
         ]);
+        const cryptoPattern = /Digital Currency Address:\s*(\w+)\s+(\S+)/g;
+        for (const note of allProperties(properties, ["notes", "summary", "description"])) {
+            cryptoPattern.lastIndex = 0;
+            let match;
+            while ((match = cryptoPattern.exec(note)) !== null) {
+                const symbol = match[1].toUpperCase();
+                const addr = match[2].trim();
+                if (addr.length >= 20) {
+                    cryptoCandidates.push({
+                        sdnId: item.id ?? "",
+                        entityName: name,
+                        address: addr,
+                        network: symbol === "XBT" ? "BTC" : symbol,
+                        programs,
+                    });
+                }
+            }
+        }
         entityRows.push({
             listId,
             sdnId: item.id ?? null,
